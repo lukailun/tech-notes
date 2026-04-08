@@ -7,8 +7,8 @@ export default defineConfig({
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
-      { text: 'Home', link: '/' },
-      { text: 'Notes', link: '/ios/Swift 内存' }
+      { text: '主页', link: '/' },
+      { text: '笔记', link: '/ios/Swift 内存' }
     ],
 
     sidebar: [
