@@ -8,17 +8,38 @@ export default defineConfig({
     // https://vitepress.dev/reference/default-theme-config
     nav: [
       { text: 'Home', link: '/' },
-      { text: 'Examples', link: '/markdown-examples' }
+      { text: 'Notes', link: '/ios/Swift 内存' }
     ],
 
     sidebar: [
       {
-        text: 'Examples',
+        text: 'iOS',
         items: [
-          { text: 'Markdown Examples', link: '/markdown-examples' },
+          { text: 'Swift 内存', link: '/ios/Swift 内存' },
           { text: 'Runtime API Examples', link: '/api-examples' }
         ]
-      }
+      },
+      {
+        text: 'Android',
+        items: [
+          // { text: 'Swift 内存', link: '/ios/Swift 内存' },
+          // { text: 'Runtime API Examples', link: '/api-examples' }
+        ]
+      },
+      {
+        text: 'React Native',
+        items: [
+          // { text: 'Swift 内存', link: '/ios/Swift 内存' },
+          // { text: 'Runtime API Examples', link: '/api-examples' }
+        ]
+      },
+      {
+        text: 'Flutter',
+        items: [
+          // { text: 'Swift 内存', link: '/ios/Swift 内存' },
+          // { text: 'Runtime API Examples', link: '/api-examples' }
+        ]
+      },
     ],
 
     socialLinks: [
