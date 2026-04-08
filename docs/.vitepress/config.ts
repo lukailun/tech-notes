@@ -2,6 +2,7 @@ import { defineConfig } from 'vitepress'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
+  base: "/tech-notes/",
   title: "Tech Notes",
   description: "Comprehensive tech notes: mobile development, cross-platform, AI tools, CI/CD, and modern engineering practices.",
   themeConfig: {
