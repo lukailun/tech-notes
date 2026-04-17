@@ -1,0 +1,1 @@
+import{_ as i,o as a,c as e,ae as r}from"./chunks/framework.DL_9NXHq.js";const b=JSON.parse('{"title":"架构课","description":"","frontmatter":{},"headers":[],"relativePath":"架构课.md","filePath":"架构课.md"}'),t={name:"架构课.md"};function o(n,l,h,s,u,d){return a(),e("div",null,[...l[0]||(l[0]=[r("",65)])])}const q=i(t,[["render",o]]);export{b as __pageData,q as default};
