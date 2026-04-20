@@ -41,6 +41,12 @@ export default defineConfig({
           // { text: 'Runtime API Examples', link: '/api-examples' }
         ]
       },
+      {
+        text: 'AI',
+        items: [
+          { text: 'Claude Code Skill 优化', link: '/AI/Claude Code Skill 优化' },
+        ]
+      },
     ],
 
     socialLinks: [
