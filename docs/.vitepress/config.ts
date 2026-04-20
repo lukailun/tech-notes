@@ -44,7 +44,7 @@ export default defineConfig({
       {
         text: 'AI',
         items: [
-          { text: 'Claude Code Skill 优化', link: '/AI/Claude Code Skill 优化' },
+          { text: 'Claude Skill 优化', link: '/AI/Claude Skill 优化' },
         ]
       },
     ],
