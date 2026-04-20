@@ -17,7 +17,7 @@ export default defineConfig({
         text: 'iOS',
         items: [
           { text: 'Swift 内存', link: '/ios/Swift 内存' },
-          { text: 'Runtime API Examples', link: '/api-examples' }
+          // { text: 'Runtime API Examples', link: '/api-examples' }
         ]
       },
       {
