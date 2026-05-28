@@ -9,14 +9,14 @@ export default defineConfig({
     // https://vitepress.dev/reference/default-theme-config
     nav: [
       { text: '主页', link: '/' },
-      { text: '笔记', link: '/ios/Swift 内存' }
+      { text: '笔记', link: '/iOS/Swift 内存' }
     ],
 
     sidebar: [
       {
         text: 'iOS',
         items: [
-          { text: 'Swift 内存', link: '/ios/Swift 内存' },
+          { text: 'Swift 内存', link: '/iOS/Swift 内存' },
           // { text: 'Runtime API Examples', link: '/api-examples' }
         ]
       },
