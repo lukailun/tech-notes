@@ -13,9 +13,9 @@
 }
 ```
 
-## 方案一：纯提示词 + 手动解析
+## 方案一：纯提示词手动解析
 
-最直接的方式是在提示词中要求模型返回 JSON，然后手动解析输出。
+最开始的方式是在提示词中要求模型返回 JSON，然后手动解析输出。
 
 ```ts
 import Anthropic from "@anthropic-ai/sdk";
@@ -37,35 +37,43 @@ const response = await client.messages.create({
 只返回 JSON，不要包含其他文字。
 
 代码 diff:
-+ function calculateTotal(items: CartItem[]): number {
-+   return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-+ }`,
+……`,
     },
   ],
 });
 
 const text = response.content[0].type === "text" ? response.content[0].text : "";
-const pr = JSON.parse(text);
-console.log(pr.title);
-console.log(pr.body);
+try {
+  const pr = JSON.parse(text)
+  console.log(pr.title);
+  console.log(pr.body);
+} catch {
+  console.log("error")
+};
+
 ```
 
-这个方案能跑通，但存在两个核心问题：
+没有结构化输出，Claude 可能会生成格式错误的 JSON 响应或无效的工具输入，这会破坏您的应用程序。即使进行了仔细的提示，您也可能遇到：
 
-* **输出不稳定**：模型可能返回 markdown 代码块（` ```json ... ``` `）、前后附加解释文字，或 JSON 格式本身有细微错误（如缺少引号、尾逗号），导致 `JSON.parse` 偶发失败。
-* **无类型约束**：模型可能返回多余的字段、字段名拼写错误（如 `Title` 而非 `title`），或字段类型不符（如 `body` 返回数组而非字符串），这些都不会在解析阶段暴露，而是在下游使用时才出错。
+来自无效 JSON 语法的解析错误
+缺少必需字段
+数据类型不一致
+需要错误处理和重试的模式违规
+结构化输出通过受限解码保证模式兼容的响应：
 
-## 方案二：拆分请求 + 手动组装
+始终有效：不再有 JSON.parse() 错误
+类型安全：保证字段类型和必需字段
+可靠：不需要为模式违规重试
 
-方案一的问题根源在于"一次性让模型输出完整 JSON"。模型擅长生成文本，但不擅长同时控制多个字段的格式。一个自然的改进思路是：将任务拆分为多个独立请求，每个请求只负责生成一个字段，最后手动组装。
+## 方案二：拆分请求手动组装
+
+方案一的问题根源在于 “一次性让模型输出完整 JSON”。模型擅长生成文本，但不擅长同时控制多个字段的格式。我的改进思路是：将任务拆分为多个独立请求，每个请求只负责生成一个字段，最后手动组装。
 
 ```ts
 import Anthropic from "@anthropic-ai/sdk";
 
 const client = new Anthropic();
-const diff = `+ function calculateTotal(items: CartItem[]): number {
-+   return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-+ }`;
+const diff = `……`;
 
 const [titleResponse, bodyResponse] = await Promise.all([
   client.messages.create({
@@ -129,9 +137,7 @@ Anthropic 的 API 没有独立的 "structured output" 端点，但可以通过 T
 import Anthropic from "@anthropic-ai/sdk";
 
 const client = new Anthropic();
-const diff = `+ function calculateTotal(items: CartItem[]): number {
-+   return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-+ }`;
+const diff = `……`;
 
 const response = await client.messages.create({
   model: "claude-sonnet-4-20250514",
