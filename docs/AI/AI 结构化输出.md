@@ -122,9 +122,7 @@ console.log("PR 描述:", pr.body);
 
 但随着大模型能力的提高，大模型自身已经提供原生的结构化输出支持，让模型在生成时就遵循预定义的 JSON 格式，从根本上解决结构化输出问题。
 
-### Anthropic：Tool Use 实现结构化输出
-
-Anthropic 的 API 没有独立的 "structured output" 端点，但可以通过 Tool Use 机制实现等价效果。核心思路是：定义一个"工具"，其参数 schema 就是我们期望的输出结构，让模型"调用"这个工具来传递结构化数据。
+Anthropic 的 API 支持通过 `output_config` 参数直接指定 JSON Schema，让模型在生成时就遵循预定义的结构。响应是与 Schema 匹配的有效 JSON，位于 `response.content[0].text` 中。
 
 ```ts
 import Anthropic from "@anthropic-ai/sdk";
@@ -135,27 +133,6 @@ const diff = `……`;
 const response = await client.messages.create({
   model: "claude-sonnet-4-20250514",
   max_tokens: 1024,
-  tools: [
-    {
-      name: "create_pr",
-      description: "创建 Pull Request",
-      input_schema: {
-        type: "object" as const,
-        properties: {
-          title: {
-            type: "string",
-            description: "PR 标题，使用 conventional commits 格式",
-          },
-          body: {
-            type: "string",
-            description: "PR 描述",
-          },
-        },
-        required: ["title", "body"],
-      },
-    },
-  ],
-  tool_choice: { type: "tool", name: "create_pr" },
   messages: [
     {
       role: "user",
@@ -165,93 +142,44 @@ const response = await client.messages.create({
 ${diff}`,
     },
   ],
-});
-
-const toolBlock = response.content.find((block) => block.type === "tool_use");
-if (toolBlock && toolBlock.type === "tool_use") {
-  const pr = toolBlock.input as { title: string; body: string };
-  console.log("PR 标题:", pr.title);
-  console.log("PR 描述:", pr.body);
-}
-```
-
-关键点在于 `tool_choice: { type: "tool", name: "create_pr" }`，这会强制模型调用指定工具，而非自由回复文本。模型的输出会严格遵循 `input_schema` 定义的 JSON Schema，无需手动解析。
-
-### OpenAI：Response Format 实现结构化输出
-
-OpenAI 提供了更直接的 `response_format` 参数，支持传入 JSON Schema 约束输出格式。
-
-```ts
-import OpenAI from "openai";
-
-const client = new OpenAI();
-const diff = `+ function calculateTotal(items: CartItem[]): number {
-+   return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-+ }`;
-
-const response = await client.chat.completions.create({
-  model: "gpt-4o",
-  response_format: {
-    type: "json_schema",
-    json_schema: {
-      name: "pr",
-      strict: true,
+  output_config: {
+    format: {
+      type: "json_schema",
       schema: {
         type: "object",
         properties: {
-          title: {
-            type: "string",
-            description: "PR 标题，使用 conventional commits 格式",
-          },
-          body: {
-            type: "string",
-            description: "PR 描述",
-          },
+          title: { type: "string" },
+          body: { type: "string" },
         },
         required: ["title", "body"],
-        additionalProperties: false,
       },
     },
   },
-  messages: [
-    {
-      role: "user",
-      content: `根据以下代码 diff，生成 PR 的标题和描述。
-
-代码 diff:
-${diff}`,
-    },
-  ],
 });
 
-const pr = JSON.parse(response.choices[0].message.content!);
+const pr = JSON.parse(response.content[0].text);
 console.log("PR 标题:", pr.title);
 console.log("PR 描述:", pr.body);
 ```
 
-### 对比
+工作原理：
 
-| 维度 | 方案一：纯提示词 | 方案二：拆分请求 | 方案三：原生结构化输出 |
-| --- | --- | --- | --- |
-| 格式可靠性 | 低，依赖模型"遵守指令" | 中，规避了 JSON 解析但文本仍不稳定 | 高，由 SDK 层面保证格式 |
-| 类型安全 | 无 | 无 | 有，JSON Schema 约束字段类型和必填项 |
-| Token 消耗 | 1x | 2x（diff 重复发送） | 1x |
-| 字段关联 | 有关联但格式不可控 | 无关联 | 有关联且格式可控 |
-| 代码复杂度 | 低 | 中 | 低 |
+- 定义 JSON 模式：定义好期望的 JSON Schema 输出结构。
+- 添加 `output_config.format` 参数：指定 `type: "json_schema"` 和 Schema 定义。
+- 解析响应：Claude 的响应是与 Schema 匹配的有效 JSON，在 `response.content[0].text` 中返回。
 
 ## 总结
 
-三种方案的演进，本质上是将"格式保证"的职责从提示词转移到 SDK 层面：
+三种方案的演进，本质上是将格式保证的职责从提示词转移到大模型层面：
 
 | | 方案一 | 方案二 | 方案三 |
 | --- | --- | --- | --- |
-| **格式保证方** | 提示词 | 拆分规避 | SDK/模型 |
-| **可靠性** | 低 | 中 | 高 |
-| **Token 消耗** | 1x | 2x | 1x |
-| **字段关联** | 有（但不可控） | 无 | 有（且可控） |
+| 格式保证方 | 提示词 | 拆分规避 | 大模型 |
+| 可靠性 | 低 | 中 | 高 |
+| token 消耗 | 1x | 2x | 1x |
+| 字段关联 | 有（不可控） | 无 | 有（可控） |
 
 工程实践中的建议：
 
-* **优先使用原生结构化输出**：如果 SDK 支持（OpenAI `response_format`、Anthropic Tool Use），直接使用，无需在提示词中描述 JSON 格式。
-* **Tool Use 不仅用于调用工具**：Anthropic 的 Tool Use 是实现结构化输出的事实标准，即使场景与"工具调用"无关，也可以用来约束输出结构。
-* **Schema 设计要精确**：善用 `required`、`enum`、`description` 等字段，Schema 越精确，模型输出越可靠。
+* 优先使用原生结构化输出：如果大模型支持，直接使用，无需在提示词中描述 JSON 格式。
+* Schema 设计要精确：善用 `required` 等字段，Schema 越精确，模型输出越可靠。
