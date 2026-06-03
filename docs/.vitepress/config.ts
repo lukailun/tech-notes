@@ -45,6 +45,7 @@ export default defineConfig({
         text: 'AI',
         items: [
           { text: 'Claude Skill 优化', link: '/AI/Claude Skill 优化' },
+          { text: 'AI 结构化输出', link: '/AI/AI 结构化输出' },
         ]
       },
     ],
