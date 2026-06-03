@@ -1,0 +1,1 @@
+import{_ as i,o as a,c as n,ae as h}from"./chunks/framework.DL_9NXHq.js";const g=JSON.parse('{"title":"ARC","description":"","frontmatter":{},"headers":[],"relativePath":"iOSs/ARC.md","filePath":"iOSs/ARC.md"}'),l={name:"iOSs/ARC.md"};function k(t,s,p,e,E,r){return a(),n("div",null,[...s[0]||(s[0]=[h("",44)])])}const y=i(l,[["render",k]]);export{g as __pageData,y as default};
