@@ -21,6 +21,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 
 const client = new Anthropic();
+const diff = `……`;
 
 const response = await client.messages.create({
   model: "claude-sonnet-4-20250514",
@@ -37,7 +38,7 @@ const response = await client.messages.create({
 只返回 JSON，不要包含其他文字。
 
 代码 diff:
-……`,
+${diff}`,
     },
   ],
 });
